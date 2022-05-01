@@ -1,4 +1,5 @@
-venv/
-tags
+venv
+__pycache__
 .env
+tags
 geckodriver.log
