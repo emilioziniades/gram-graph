@@ -1,4 +1,5 @@
 import os
+import pickle
 from typing import List
 
 from instapy import InstaPy
@@ -23,9 +24,11 @@ def main():
     main_user = "happyhoundsza"
     rec_get_followers(session, [main_user], 0)
 
-    # do work here
-
     session.end()
+
+    with open("followers.pickle", "wb") as f:
+        pickle.dump(user_to_followers, f, pickle.HIGHEST_PROTOCOL)
+
     breakpoint()
 
 
