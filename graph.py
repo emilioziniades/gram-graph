@@ -84,11 +84,10 @@ class GramGraph(nx.Graph):
 
         node_adjacencies = []
         node_text = []
-        print(self.adjacency())
-        for node, adjacencies in enumerate(self.adjacency()):
-            n_adjacencies = len(adjacencies[1])
+        for node, adjacencies in self.adjacency():
+            n_adjacencies = len(adjacencies)
             node_adjacencies.append(n_adjacencies)
-            node_text.append("# of connections: " + str(n_adjacencies))
+            node_text.append(f"{node}: {n_adjacencies} connections")
 
         node_trace.marker.color = node_adjacencies
         node_trace.text = node_text
