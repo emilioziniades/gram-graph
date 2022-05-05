@@ -1,0 +1,26 @@
+html {
+    font-family: sans-serif;
+    background-color: papayawhip;
+}
+
+.header {
+    background-color: rebeccapurple;
+}
+
+.header {
+  text-align: center;
+  background-color: #78C5DC;
+  padding: 1rem 2rem;
+  margin: 0.25rem;
+  border: solid;
+  border-radius: 2mm;
+}
+
+.header-container {
+  display: flex;
+  justify-content: center;
+}
+
+h1, h2 {
+    text-align: center;
+}

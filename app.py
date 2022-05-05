@@ -17,4 +17,6 @@ def index():
     figure = G.plot_graph()
     figure_JSON = json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
 
-    return render_template("base.html", figure_JSON=figure_JSON)
+    return render_template(
+        "base.html", figure_JSON=figure_JSON, main_account="happyhoundsza"
+    )

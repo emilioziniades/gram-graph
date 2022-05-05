@@ -1,7 +1,9 @@
 <!doctype html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
 <html>
  <body>
-  <h1>Hello Plotly (without Dash)</h1>
+   <div class="header-container"><h1 class="header">GramGraph</h1></div>
+  <h2>Showing followers graph of: {{ main_account }}</h2>
   <div id='chart' class='chart'”></div>
 </body>
 
