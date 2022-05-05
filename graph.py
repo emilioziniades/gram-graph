@@ -3,16 +3,18 @@ from typing import Dict, List
 import plotly.graph_objects as go
 import networkx as nx
 
+test_data = {
+    "a": ["b", "c"],
+    "b": ["c"],
+    "c": [],
+    "d": ["a", "b", "c", "d"],
+}
+
 
 def main():
-    d = {
-        "a": ["b", "c"],
-        "b": ["c"],
-        "c": [],
-    }
 
     # G = GramGraph(nx.random_geometric_graph(200, 0.125))
-    G = GramGraph(d)
+    G = GramGraph(test_data)
     fig = G.plot_graph()
     fig.show()
 
@@ -63,7 +65,6 @@ class GramGraph(nx.Graph):
             marker=dict(
                 showscale=True,
                 colorscale="YlGnBu",
-                reversescale=True,
                 color=[],
                 size=10,
                 colorbar=dict(
@@ -83,7 +84,8 @@ class GramGraph(nx.Graph):
 
         node_adjacencies = []
         node_text = []
-        for _, adjacencies in enumerate(self.adjacency()):
+        print(self.adjacency())
+        for node, adjacencies in enumerate(self.adjacency()):
             n_adjacencies = len(adjacencies[1])
             node_adjacencies.append(n_adjacencies)
             node_text.append("# of connections: " + str(n_adjacencies))
@@ -94,21 +96,11 @@ class GramGraph(nx.Graph):
         return go.Figure(
             data=[edge_trace, node_trace],
             layout=go.Layout(
-                title="<br>Network graph made with Python",
+                title="Network graph made with Python",
                 titlefont_size=16,
                 showlegend=False,
                 hovermode="closest",
                 margin=dict(b=20, l=5, r=5, t=40),
-                annotations=[
-                    dict(
-                        text="Python code (at this link)",
-                        showarrow=False,
-                        xref="paper",
-                        yref="paper",
-                        x=0.005,
-                        y=-0.002,
-                    )
-                ],
                 xaxis=dict(
                     showgrid=False,
                     zeroline=False,
