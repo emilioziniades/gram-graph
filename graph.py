@@ -3,17 +3,16 @@ from typing import Dict, List
 import plotly.graph_objects as go
 import networkx as nx
 
-test_data = {
-    "a": ["b", "c"],
-    "b": ["c"],
-    "c": [],
-    "d": ["a", "b", "c", "d"],
-}
+# test_data = {
+#     "a": ["b", "c"],
+#     "b": ["c"],
+#     "c": [],
+#     "d": ["a", "b", "c", "d"],
+# }
+test_data = nx.random_geometric_graph(200, 0.125)
 
 
 def main():
-
-    # G = GramGraph(nx.random_geometric_graph(200, 0.125))
     G = GramGraph(test_data)
     fig = G.plot_graph()
     fig.show()
