@@ -2,8 +2,18 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
 <html>
  <body>
-   <div class="header-container"><h1 class="header">GramGraph</h1></div>
-  <h2>Showing followers graph of: {{ main_account }}</h2>
+   <div class="flex-center">
+    <h1 class="header">GramGraph</h1>
+    <h2>Showing followers graph of: {{ main_account }}</h2>
+    <button>
+    {% if prune %}
+      <a href="{{ url_for('index')}}">Unprune graph</a>
+    {% else %}
+      <a href="{{ url_for('index', prune=True)}}">Prune graph</a>
+    {% endif %}
+    </button>
+    <em>Pruned graphs omit any nodes with only one connection</em>
+   </div>
   <div id='chart' class='chart'”></div>
 </body>
 
