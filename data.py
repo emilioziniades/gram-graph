@@ -2,7 +2,7 @@ import os
 import pickle
 from typing import List
 
-from instapy import InstaPy
+from instapy import InstaPy, smart_run
 import dotenv
 
 
@@ -10,21 +10,20 @@ def main():
     dotenv.load_dotenv()
     username = os.getenv("INSTAGRAM_USERNAME") or "empty"
     password = os.getenv("INSTAGRAM_PASSWORD") or "empty"
+    main_user = "happyhoundsza"
+    global user_to_followers, max_depth
+    user_to_followers = dict()
+    max_depth = 2
     session = InstaPy(
         username=username,
         password=password,
         headless_browser=True,
         want_check_browser=False,
     )
-    session.login()
-
-    global user_to_followers, max_depth
-    user_to_followers = dict()
-    max_depth = 2
-    main_user = "happyhoundsza"
-    rec_get_followers(session, [main_user], 0)
-
-    session.end()
+    with smart_run(session):
+        session.login()
+        rec_get_followers(session, [main_user], 0)
+        session.end()
 
     with open("followers.pickle", "wb") as f:
         pickle.dump(user_to_followers, f, pickle.HIGHEST_PROTOCOL)
@@ -35,7 +34,7 @@ def main():
 def get_followers(session: InstaPy, user: str) -> List[str]:
     print(f"getting followers for {user}")
     followers = session.grab_followers(
-        username=user, amount=50, live_match=True, store_locally=True
+        username=user, amount="full", live_match=True, store_locally=True
     )
     print(user, followers)
     return followers
