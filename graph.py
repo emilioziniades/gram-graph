@@ -8,19 +8,24 @@ import networkx as nx
 #     "b": ["c"],
 #     "c": [],
 #     "d": ["a", "b", "c", "d"],
+#     "e": ["a"],
 # }
 test_data = nx.random_geometric_graph(200, 0.125)
 
 
 def main():
-    G = GramGraph(test_data)
-    fig = G.plot_graph()
-    fig.show()
+    G = GramGraph(test_data, prune=True)
+    G.show_graph()
+
+    GG = GramGraph(test_data)
+    GG.show_graph()
 
 
 class GramGraph(nx.Graph):
-    def __init__(self, data: Dict[str, List[str]]):
+    def __init__(self, data: Dict[str, List[str]], prune: bool = False):
         super().__init__(data)
+        if prune:
+            self._prune_graph()
 
     def _position_graph(self):
         """Adds 'pos' attribute to each node, used to draw graph later"""
@@ -111,6 +116,23 @@ class GramGraph(nx.Graph):
                 ),
             ),
         )
+
+    def show_graph(self):
+        self.plot_graph().show()
+
+    def _prune_graph(self):
+
+        nodes_to_remove = []
+        edges_to_remove = []
+
+        for node, adjacent in self.adjacency():
+            n_adjacent = len(adjacent)
+            if n_adjacent <= 1:
+                nodes_to_remove.append(node)
+                edges_to_remove.extend(self.edges(node))
+
+        self.remove_nodes_from(nodes_to_remove)
+        self.remove_edges_from(edges_to_remove)
 
 
 if __name__ == "__main__":
