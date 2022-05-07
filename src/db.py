@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from contextlib import contextmanager
 from typing import Tuple, List, Optional, NamedTuple
 
-
 from dateutil.parser import parse
 
 

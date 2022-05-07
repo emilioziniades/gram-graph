@@ -5,7 +5,7 @@ from instapy import InstaPy, smart_run
 import dotenv
 
 from db import database_connection
-from config import DATABASE_FILENAME
+from .config import DATABASE_FILENAME
 
 
 def main():

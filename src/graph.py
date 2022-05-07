@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import plotly
 import networkx as nx
 
-from config import (
+from .config import (
     DATA_DIRECTORY,
     PRUNED_FIGURE_FILENAME,
     UNPRUNED_FIGURE_FILENAME,
