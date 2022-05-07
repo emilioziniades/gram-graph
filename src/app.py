@@ -4,6 +4,7 @@ from flask import Flask, render_template, request
 
 from data import collect_data
 from graph import save_figures_JSON
+from config import DATA_DIRECTORY
 
 
 app = Flask(__name__)
@@ -11,8 +12,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    pruned_JSON = Path("data/pruned_figure.json").read_text()  # TODO
-    unpruned_JSON = Path("data/unpruned_figure.json").read_text()  # TODO
+    pruned_JSON = Path(f"{DATA_DIRECTORY}/pruned_figure.json").read_text()
+    unpruned_JSON = Path(f"{DATA_DIRECTORY}/pruned_figure.json").read_text()
     prune = bool(request.args.get("prune", False))
     return render_template(
         "base.html",

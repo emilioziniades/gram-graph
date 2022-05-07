@@ -5,15 +5,15 @@ from instapy import InstaPy, smart_run
 import dotenv
 
 from db import database_connection
+from config import DATABASE_FILENAME
 
 
 def main():
     collect_data()
 
 
-def collect_data():
+def collect_data(user: str = "happyhoundsza"):
     username, password = get_username_password()
-    main_user = "happyhoundsza"
     global session, db, max_depth
     session = InstaPy(
         username=username,
@@ -22,8 +22,8 @@ def collect_data():
         want_check_browser=False,
     )
     max_depth = 2
-    with smart_run(session), database_connection("followers.db") as db:
-        recursively_get_followers([main_user], 0)
+    with smart_run(session), database_connection(DATABASE_FILENAME) as db:
+        recursively_get_followers([user], 0)
 
 
 def get_followers(user: str) -> List[str]:

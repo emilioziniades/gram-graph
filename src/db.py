@@ -23,8 +23,8 @@ class User(NamedTuple):
 
 
 class Database:
-    def __init__(self, location: str, from_scratch: bool = False):
-        self.con = sqlite3.connect(location)
+    def __init__(self, filepath: str, from_scratch: bool = False):
+        self.con = sqlite3.connect(filepath)
         self.insert_stmt = "INSERT INTO user_followers VALUES (?,?,date('now'))"
         if from_scratch:
             self._init_table()
@@ -45,21 +45,20 @@ class Database:
         ).fetchone()
 
         if user:
-            username, followers, entry_date = user
+            username, followers, date_added = user
             followers = json.loads(followers)
-            entry_date = parse(entry_date)
-            return User(username, followers, entry_date)
+            date_added = parse(date_added)
+            return User(username, followers, date_added)
         else:
             return User("", [], datetime(year=2050, month=1, day=1))
 
-    def has_user(self, username: str, expiry: int = 0) -> bool:
-        """Checks if `username` in table and that it was entered less than `expiry` days ago (if expiry > 0)"""
+    def has_user(self, username: str, expiry_days: int = 0) -> bool:
+        """Checks if `username` in table and that it was entered less than `expiry_days` days ago (if expiry_days > 0)"""
         user = self.get_user(username)
-        entry_date = user.date_added
-        expiry_date = datetime.now() - timedelta(days=expiry)
-        expired = entry_date < expiry_date
+        expiry_date = datetime.now() - timedelta(days=expiry_days)
+        expired = user.date_added < expiry_date
 
-        return user and not (expiry and expired)
+        return user and not (expiry_days and expired)
 
     def _init_table(self):
         with self.con:
@@ -74,11 +73,11 @@ class Database:
 
 
 @contextmanager
-def database_connection(location: str):
-    if not os.path.exists(location):
-        db = Database(location, from_scratch=True)
+def database_connection(filepath: str):
+    if not os.path.exists(filepath):
+        db = Database(filepath, from_scratch=True)
     else:
-        db = Database(location)
+        db = Database(filepath)
     try:
         yield db
     finally:
@@ -113,7 +112,7 @@ def test_db():
             f"INSERT INTO user_followers VALUES ('ez', '{patched_JSON}', '2021-08-21')"
         )
     assert db.has_user("ez")
-    assert not db.has_user("ez", expiry=30)
+    assert not db.has_user("ez", expiry_days=30)
 
     db.con.close()
 
