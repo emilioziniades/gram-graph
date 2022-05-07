@@ -1,7 +1,10 @@
-import sqlite3
+import os
 import json
-from typing import Tuple, List, Optional
+import sqlite3
 from datetime import datetime, timedelta
+from contextlib import contextmanager
+from typing import Tuple, List, Optional, NamedTuple
+
 
 from dateutil.parser import parse
 
@@ -10,15 +13,55 @@ def main():
     test_db()
 
 
-Entry = Tuple[str, List[str]]
+class User(NamedTuple):
+    username: str
+    followers: List[str]
+    date_added: datetime
+
+    def __bool__(self):
+        return all(self)
 
 
 class Database:
-    def __init__(self, location: str):
+    def __init__(self, location: str, from_scratch: bool = False):
         self.con = sqlite3.connect(location)
         self.insert_stmt = "INSERT INTO user_followers VALUES (?,?,date('now'))"
+        if from_scratch:
+            self._init_table()
 
-    def init_table(self):
+    def insert(self, user: str, followers: List[str]):
+        followers_JSON = json.dumps(followers)
+        with self.con:
+            self.con.execute(self.insert_stmt, (user, followers_JSON))
+
+    def insert_many(self, entries: List[Tuple[str, List[str]]]):
+        entries_JSON = [(user, json.dumps(followers)) for user, followers in entries]
+        with self.con:
+            self.con.executemany(self.insert_stmt, entries_JSON)
+
+    def get_user(self, username: str) -> User:
+        user = self.con.execute(
+            "SELECT * FROM user_followers WHERE username=?", (username,)
+        ).fetchone()
+
+        if user:
+            username, followers, entry_date = user
+            followers = json.loads(followers)
+            entry_date = parse(entry_date)
+            return User(username, followers, entry_date)
+        else:
+            return User("", [], datetime(year=2050, month=1, day=1))
+
+    def has_user(self, username: str, expiry: int = 0) -> bool:
+        """Checks if `username` in table and that it was entered less than `expiry` days ago (if expiry > 0)"""
+        user = self.get_user(username)
+        entry_date = user.date_added
+        expiry_date = datetime.now() - timedelta(days=expiry)
+        expired = entry_date < expiry_date
+
+        return user and not (expiry and expired)
+
+    def _init_table(self):
         with self.con:
             self.con.execute("DROP TABLE IF EXISTS user_followers")
             self.con.execute(
@@ -29,45 +72,24 @@ class Database:
                     )"""
             )
 
-    def insert(self, entry: Entry):
-        user, followers = entry
-        followers = json.dumps(followers)
-        with self.con:
-            self.con.execute(self.insert_stmt, (user, followers))
 
-    def insert_many(self, entries: List[Entry]):
-        entries_JSON = [(user, json.dumps(followers)) for user, followers in entries]
-        with self.con:
-            self.con.executemany(self.insert_stmt, entries_JSON)
-
-    def get_user(self, username: str) -> Optional[Tuple[str, List[str], str]]:
-        user = self.con.execute(
-            "SELECT * FROM user_followers WHERE username=?", (username,)
-        ).fetchone()
-
-        if user:
-            username, followers, entry_date = user
-            followers = json.loads(followers)
-            return username, followers, entry_date
-        else:
-            return user
-
-    def has_user(self, username: str, expiry: int = 0) -> bool:
-        """Checks if `username` in table and that it was entered less than `expiry` days ago (if expiry > 0)"""
-        user = self.get_user(username) or False
-        entry_date = parse(user[2] if user else "2030-1-1")
-        expiry_date = datetime.now() - timedelta(days=expiry)
-        expired = entry_date < expiry_date
-
-        return user and not (expiry and expired)
+@contextmanager
+def database_connection(location: str):
+    if not os.path.exists(location):
+        db = Database(location, from_scratch=True)
+    else:
+        db = Database(location)
+    try:
+        yield db
+    finally:
+        db.con.close()
 
 
 def test_db():
-    db = Database(":memory:")
-    db.init_table()
+    db = Database(":memory:", from_scratch=True)
 
     # inserting one and many rows
-    db.insert(("test2", ["this", "that"]))
+    db.insert("test2", ["this", "that"])
     test_data = [
         ("hhza", ["lilo", "layla", "tom"]),
         ("huf", ["me", "mimi", "talis"]),
@@ -78,8 +100,7 @@ def test_db():
 
     # json entries working correctly
     hhza = db.get_user("hhza")
-    print(hhza)
-    assert hhza[1][2] == "tom"
+    assert hhza.followers[2] == "tom"
 
     # checking user presence
     assert db.has_user("huf")
