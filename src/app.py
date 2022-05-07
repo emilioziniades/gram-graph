@@ -2,7 +2,7 @@ from pathlib import Path
 
 from flask import Flask, render_template, request
 
-from .data import collect_data
+# from .data import collect_data
 from .graph import save_figures_JSON
 from .config import DATA_DIRECTORY
 
@@ -28,6 +28,6 @@ def prepare_graphs():
     save_figures_JSON()
 
 
-@app.cli.command("collect")
-def collect_graph_data():
-    collect_data()
+# @app.cli.command("collect")
+# def collect_graph_data():
+#     collect_data()
