@@ -4,7 +4,7 @@ from typing import List, Tuple
 from instapy import InstaPy, smart_run
 import dotenv
 
-from db import database_connection
+from .db import database_connection
 from .config import DATABASE_FILENAME
 
 
@@ -38,7 +38,7 @@ def get_followers(user: str) -> List[str]:
 
 def recursively_get_followers(users: List[str], depth: int):
     print(f"recursively_get_followers(depth={depth}, users={users})")
-    global session, db, max_depth
+    global db, max_depth
     if depth >= max_depth:
         return
     for user in users:
