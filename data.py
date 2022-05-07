@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple
 
 from instapy import InstaPy, smart_run
 import dotenv
@@ -8,9 +8,11 @@ from db import database_connection
 
 
 def main():
-    dotenv.load_dotenv()
-    username = os.getenv("INSTAGRAM_USERNAME") or "empty"
-    password = os.getenv("INSTAGRAM_PASSWORD") or "empty"
+    collect_data()
+
+
+def collect_data():
+    username, password = get_username_password()
     main_user = "happyhoundsza"
     global session, db, max_depth
     session = InstaPy(
@@ -21,7 +23,7 @@ def main():
     )
     max_depth = 2
     with smart_run(session), database_connection("followers.db") as db:
-        rec_get_followers([main_user], 0)
+        recursively_get_followers([main_user], 0)
 
 
 def get_followers(user: str) -> List[str]:
@@ -34,8 +36,8 @@ def get_followers(user: str) -> List[str]:
     return followers
 
 
-def rec_get_followers(users: List[str], depth: int):
-    print(f"rec_get_followers(depth={depth}, users={users})")
+def recursively_get_followers(users: List[str], depth: int):
+    print(f"recursively_get_followers(depth={depth}, users={users})")
     global session, db, max_depth
     if depth >= max_depth:
         return
@@ -45,7 +47,22 @@ def rec_get_followers(users: List[str], depth: int):
         else:
             followers = get_followers(user)
             db.insert(user, followers)
-        rec_get_followers(followers, depth + 1)
+        recursively_get_followers(followers, depth + 1)
+
+
+def get_username_password() -> Tuple[str, str]:
+    dotenv.load_dotenv()
+    username_env = "INSTAGRAM_USERNAME"
+    password_env = "INSTAGRAM_PASSWORD"
+    username = os.getenv(username_env)
+    password = os.getenv(password_env)
+
+    if username is None:
+        raise ValueError(f"{username_env} not in environment variables")
+    if password is None:
+        raise ValueError(f"{password_env} not in environment variables")
+
+    return username, password
 
 
 if __name__ == "__main__":

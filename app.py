@@ -1,16 +1,18 @@
 from pathlib import Path
+
 from flask import Flask, render_template, request
+
+from data import collect_data
+from graph import save_figures_JSON
 
 
 app = Flask(__name__)
 
-pruned_JSON = Path("data/pruned_figure.json").read_text()
-unpruned_JSON = Path("data/unpruned_figure.json").read_text()
-
 
 @app.route("/")
 def index():
-    print(request.args)
+    pruned_JSON = Path("data/pruned_figure.json").read_text()  # TODO
+    unpruned_JSON = Path("data/unpruned_figure.json").read_text()  # TODO
     prune = bool(request.args.get("prune", False))
     return render_template(
         "base.html",
@@ -18,3 +20,13 @@ def index():
         main_account="happyhoundsza",
         prune=prune,
     )
+
+
+@app.cli.command("prepare")
+def prepare_graphs():
+    save_figures_JSON()
+
+
+@app.cli.command("collect")
+def collect_graph_data():
+    collect_data()

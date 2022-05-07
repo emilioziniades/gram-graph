@@ -1,6 +1,10 @@
-from typing import Dict, List
+import os
+import pickle
+import json
+from typing import Dict, List, Tuple
 
 import plotly.graph_objects as go
+import plotly
 import networkx as nx
 
 # test_data = {
@@ -154,6 +158,37 @@ class GramGraph(nx.Graph):
 
         self.remove_nodes_from(nodes_to_remove)
         self.remove_edges_from(edges_to_remove)
+
+
+def get_figures_JSON() -> Tuple[str, str]:
+    """Preloads JSON for both pruned and unpruned graphs"""
+    with open("followers.pickle", "rb") as f:
+        followers = pickle.load(f)
+    G = GramGraph(followers, prune=False)
+    GP = GramGraph(followers, prune=True)
+    unpruned_fig = G.plot_graph()
+    pruned_fig = GP.plot_graph()
+    return (
+        json.dumps(pruned_fig, cls=plotly.utils.PlotlyJSONEncoder),
+        json.dumps(unpruned_fig, cls=plotly.utils.PlotlyJSONEncoder),
+    )
+
+
+def save_figures_JSON():
+    """converts followers data into pruned and unpruned data"""
+    pruned_json, unpruned_json = get_figures_JSON()
+
+    data_dir = "data"
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    for json_file, filename in [
+        (pruned_json, "pruned_figure.json"),  # TODO
+        (unpruned_json, "unpruned_figure.json"),  # TODO
+    ]:
+        with open(os.path.join(data_dir, filename), "w") as f:  # TODO
+            f.write(json_file)
+    print("graph json prepared (pruned and unpruned)")
 
 
 if __name__ == "__main__":
