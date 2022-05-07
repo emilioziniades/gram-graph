@@ -2,9 +2,9 @@ from pathlib import Path
 
 from flask import Flask, render_template, request
 
-from data import collect_data
-from graph import save_figures_JSON
-from config import DATA_DIRECTORY
+from .data import collect_data
+from .graph import save_figures_JSON
+from .config import DATA_DIRECTORY
 
 
 app = Flask(__name__)
