@@ -17,8 +17,8 @@ def main():
     G = GramGraph(test_data, prune=True)
     G.show_graph()
 
-    GG = GramGraph(test_data)
-    GG.show_graph()
+    # GG = GramGraph(test_data)
+    # GG.show_graph()
 
 
 class GramGraph(nx.Graph):
@@ -33,7 +33,7 @@ class GramGraph(nx.Graph):
         for node in self.nodes():
             self.nodes[node]["pos"] = list(position[node])
 
-    def _create_edge_traces(self) -> go.Scatter:
+    def _create_edge_trace(self) -> go.Scatter:
         edge_x = []
         edge_y = []
         for edge in self.edges():
@@ -53,7 +53,7 @@ class GramGraph(nx.Graph):
             mode="lines",
         )
 
-    def _create_node_traces(self) -> go.Scatter:
+    def _create_node_trace(self) -> go.Scatter:
         node_x = []
         node_y = []
         for node in self.nodes():
@@ -83,8 +83,8 @@ class GramGraph(nx.Graph):
 
     def plot_graph(self) -> go.Figure:
         self._position_graph()
-        edge_trace = self._create_edge_traces()
-        node_trace = self._create_node_traces()
+        edge_trace = self._create_edge_trace()
+        node_trace = self._create_node_trace()
 
         node_adjacencies = []
         node_text = []
@@ -95,6 +95,26 @@ class GramGraph(nx.Graph):
 
         node_trace.marker.color = node_adjacencies
         node_trace.text = node_text
+
+        annotations = []
+        for e0, e1 in self.edges():
+            x0, y0 = self.nodes[e0]["pos"]
+            x1, y1 = self.nodes[e1]["pos"]
+            annotations.append(
+                dict(
+                    x=x0,
+                    y=y0,
+                    ax=x1,
+                    ay=y1,
+                    xref="x",
+                    yref="y",
+                    axref="x",
+                    ayref="y",
+                    showarrow=True,
+                    text="",
+                    arrowhead=1,
+                )
+            )
 
         return go.Figure(
             data=[edge_trace, node_trace],
@@ -114,6 +134,7 @@ class GramGraph(nx.Graph):
                     zeroline=False,
                     showticklabels=False,
                 ),
+                # annotations=annotations,
             ),
         )
 
