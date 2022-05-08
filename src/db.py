@@ -3,9 +3,11 @@ import json
 import sqlite3
 from datetime import datetime, timedelta
 from contextlib import contextmanager
-from typing import Tuple, List, Optional, NamedTuple
+from typing import Tuple, List, NamedTuple
 
 from dateutil.parser import parse
+
+from .util import print_red
 
 
 def main():
@@ -18,7 +20,7 @@ class User(NamedTuple):
     date_added: datetime
 
     def __bool__(self):
-        return all(self)
+        return any(self)
 
 
 class Database:
@@ -31,7 +33,11 @@ class Database:
     def insert(self, user: str, followers: List[str]):
         followers_JSON = json.dumps(followers)
         with self.con:
-            self.con.execute(self.insert_stmt, (user, followers_JSON))
+            try:
+                self.con.execute(self.insert_stmt, (user, followers_JSON))
+            except sqlite3.IntegrityError:
+                print_red(f"caught error trying to insert {user} into db")
+                raise
 
     def insert_many(self, entries: List[Tuple[str, List[str]]]):
         entries_JSON = [(user, json.dumps(followers)) for user, followers in entries]
@@ -49,13 +55,13 @@ class Database:
             date_added = parse(date_added)
             return User(username, followers, date_added)
         else:
-            return User("", [], datetime(year=2050, month=1, day=1))
+            return User("", [], "")
 
     def has_user(self, username: str, expiry_days: int = 0) -> bool:
         """Checks if `username` in table and that it was entered less than `expiry_days` days ago (if expiry_days > 0)"""
         user = self.get_user(username)
         expiry_date = datetime.now() - timedelta(days=expiry_days)
-        expired = user.date_added < expiry_date
+        expired = user.date_added < expiry_date if user else False
 
         return user and not (expiry_days and expired)
 

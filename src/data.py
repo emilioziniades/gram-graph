@@ -6,6 +6,7 @@ import dotenv
 
 from .db import database_connection
 from .config import DATABASE_FILENAME
+from .util import print_red, print_green, print_yellow, print_header
 
 
 def main():
@@ -28,23 +29,31 @@ def collect_data(user: str = "happyhoundsza"):
 
 def get_followers(user: str) -> List[str]:
     global session
-    print(f"getting followers for {user}")
-    followers = session.grab_followers(
-        username=user, amount="full", live_match=True, store_locally=True  # type: ignore
-    )
-    print(user, f"{len(followers)} followers")
-    return followers
+    try:
+        followers = session.grab_followers(
+            username=user, amount="full", live_match=True, store_locally=True  # type: ignore
+        )
+    except TypeError as e:
+        if str(e) != "'NoneType' object is not subscriptable":
+            raise
+        print_red("could not find user")
+        return []
+    else:
+        return followers
 
 
 def recursively_get_followers(users: List[str], depth: int):
-    print(f"recursively_get_followers(depth={depth}, users={users})")
+    # print(f"recursively_get_followers(depth={depth}, users={users})")
     global db, max_depth
     if depth >= max_depth:
         return
     for user in users:
+        print_header(f"getting followers for {user}")
         if db.has_user(user):
+            print_green(f"found {user} in database")
             followers = db.get_user(user).followers
         else:
+            print_yellow(f"{user} not in database, fetching from Instagram")
             followers = get_followers(user)
             db.insert(user, followers)
         recursively_get_followers(followers, depth + 1)
