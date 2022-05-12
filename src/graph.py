@@ -13,23 +13,24 @@ from .config import (
     UNPRUNED_FIGURE_FILENAME,
     PICKLE_FILENAME,
 )
+from .util import shorten_line, Point
 
-# test_data = {
-#     "a": ["b", "c"],
-#     "b": ["c"],
-#     "c": [],
-#     "d": ["a", "b", "c", "d"],
-#     "e": ["a"],
-# }
-test_data = nx.random_geometric_graph(200, 0.125)
+test_data = {
+    "a": ["b", "c"],
+    "b": ["c"],
+    "c": [],
+    "d": ["a", "b", "c", "d"],
+    "e": ["a"],
+}
+# test_data = nx.random_geometric_graph(200, 0.125)
 
 
 def main():
-    G = GramGraph(test_data, prune=True)
-    G.show_graph()
+    # G = GramGraph(test_data, prune=True)
+    # G.show_graph()
 
-    # GG = GramGraph(test_data)
-    # GG.show_graph()
+    GG = GramGraph(test_data)
+    GG.show_graph()
 
 
 class GramGraph(nx.Graph):
@@ -37,6 +38,7 @@ class GramGraph(nx.Graph):
         super().__init__(data)
         if prune:
             self._prune_graph()
+        self.node_size = 10
 
     def _position_graph(self):
         """Adds 'pos' attribute to each node, used to draw graph later"""
@@ -81,7 +83,7 @@ class GramGraph(nx.Graph):
                 showscale=True,
                 colorscale="YlGnBu",
                 color=[],
-                size=10,
+                size=self.node_size,
                 colorbar=dict(
                     thickness=15,
                     title="Node Connections",
@@ -111,12 +113,13 @@ class GramGraph(nx.Graph):
         for e0, e1 in self.edges():
             x0, y0 = self.nodes[e0]["pos"]
             x1, y1 = self.nodes[e1]["pos"]
+            x2, y2 = shorten_line(Point(x0, y0), Point(x1, y1), self.node_size)
             annotations.append(
                 dict(
                     x=x0,
                     y=y0,
-                    ax=x1,
-                    ay=y1,
+                    ax=x2,
+                    ay=y2,
                     xref="x",
                     yref="y",
                     axref="x",
