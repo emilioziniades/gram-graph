@@ -13,16 +13,15 @@ from .config import (
     UNPRUNED_FIGURE_FILENAME,
     PICKLE_FILENAME,
 )
-from .util import shorten_line, Point
 
 test_data = {
     "a": ["b", "c"],
     "b": ["c"],
-    "c": [],
-    "d": ["a", "b", "c", "d"],
+    # "c": [],
+    "d": ["a", "b", "c"],
     "e": ["a"],
 }
-# test_data = nx.random_geometric_graph(200, 0.125)
+test_data = nx.random_geometric_graph(200, 0.125)
 
 
 def main():
@@ -33,7 +32,7 @@ def main():
     GG.show_graph()
 
 
-class GramGraph(nx.Graph):
+class GramGraph(nx.DiGraph):
     def __init__(self, data: Dict[str, List[str]], prune: bool = False):
         super().__init__(data)
         if prune:
@@ -109,27 +108,6 @@ class GramGraph(nx.Graph):
         node_trace.marker.color = node_adjacencies
         node_trace.text = node_text
 
-        annotations = []
-        for e0, e1 in self.edges():
-            x0, y0 = self.nodes[e0]["pos"]
-            x1, y1 = self.nodes[e1]["pos"]
-            x2, y2 = shorten_line(Point(x0, y0), Point(x1, y1), self.node_size)
-            annotations.append(
-                dict(
-                    x=x0,
-                    y=y0,
-                    ax=x2,
-                    ay=y2,
-                    xref="x",
-                    yref="y",
-                    axref="x",
-                    ayref="y",
-                    showarrow=True,
-                    text="",
-                    arrowhead=1,
-                )
-            )
-
         return go.Figure(
             data=[edge_trace, node_trace],
             layout=go.Layout(
@@ -148,7 +126,6 @@ class GramGraph(nx.Graph):
                     zeroline=False,
                     showticklabels=False,
                 ),
-                # annotations=annotations,
             ),
         )
 
