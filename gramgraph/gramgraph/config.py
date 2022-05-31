@@ -7,7 +7,7 @@ def in_data_dir(filename):
 
 
 PROJECT_DIRECTORY = Path(__file__).parents[1]
-DATA_DIRECTORY = os.path.join(PROJECT_DIRECTORY, "data")
+DATA_DIRECTORY = os.path.join(Path(__file__).parents[2], "data")
 PRUNED_FIGURE_FILENAME = in_data_dir("pruned_figure.json")
 UNPRUNED_FIGURE_FILENAME = in_data_dir("unpruned_figure.json")
 PICKLE_FILENAME = in_data_dir("followers.pickle")
