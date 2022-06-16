@@ -7,8 +7,10 @@ import plotly.graph_objects as go
 import plotly
 import networkx as nx
 
+from .db import database_connection
 from .config import (
     DATA_DIRECTORY,
+    DATABASE_FILENAME,
     PRUNED_FIGURE_FILENAME,
     UNPRUNED_FIGURE_FILENAME,
     PICKLE_FILENAME,
@@ -151,6 +153,8 @@ def get_figures_JSON() -> Tuple[str, str]:
     """Preloads JSON for both pruned and unpruned graphs"""
     with open(PICKLE_FILENAME, "rb") as f:
         followers = pickle.load(f)
+    with database_connection(DATABASE_FILENAME) as db:
+        followers = {user: followers for user, followers, _ in db.get_all_users()}
     G = GramGraph(followers, prune=False)
     GP = GramGraph(followers, prune=True)
     unpruned_fig = G.plot_graph()

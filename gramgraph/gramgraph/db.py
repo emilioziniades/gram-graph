@@ -50,12 +50,13 @@ class Database:
         ).fetchone()
 
         if user:
-            username, followers, date_added = user
-            followers = json.loads(followers)
-            date_added = parse(date_added)
-            return User(username, followers, date_added)
+            return self.parse_user(user)
         else:
             return User("", [], "")
+
+    def get_all_users(self) -> List[User]:
+        users = self.con.execute("SELECT * FROM user_followers").fetchall()
+        return [self.parse_user(user) for user in users]
 
     def has_user(self, username: str, expiry_days: int = 0) -> bool:
         """Checks if `username` in table and that it was entered less than `expiry_days` days ago (if expiry_days > 0)"""
@@ -64,6 +65,14 @@ class Database:
         expired = user.date_added < expiry_date if user else False
 
         return user and not (expiry_days and expired)
+
+    def parse_user(self, user: Tuple[str, str, str]) -> User:
+        """Parses data from db into appropriate formats,
+        parsing the JSON list of followers and the date_added"""
+        username, followers, date_added = user
+        followers = json.loads(followers)
+        date_added = parse(date_added)
+        return User(username, followers, date_added)
 
     def _init_table(self):
         with self.con:
@@ -118,6 +127,12 @@ def test_db():
         )
     assert db.has_user("ez")
     assert not db.has_user("ez", expiry_days=30)
+
+    all_users = db.get_all_users()
+    assert len(all_users) == 4
+    assert isinstance(all_users[0], User)
+
+    breakpoint()
 
     db.con.close()
 
