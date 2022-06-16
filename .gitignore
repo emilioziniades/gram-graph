@@ -5,3 +5,4 @@ tags
 geckodriver.log
 .DS_Store
 *.egg-info/
+*.log
