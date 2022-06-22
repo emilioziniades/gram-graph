@@ -1,7 +1,7 @@
 import os
 import pickle
 import json
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 import plotly.graph_objects as go
 import plotly
@@ -19,31 +19,44 @@ from .config import (
 test_data = {
     "a": ["b", "c"],
     "b": ["c"],
-    # "c": [],
+    "c": [],
     "d": ["a", "b", "c"],
     "e": ["a"],
 }
-test_data = nx.random_geometric_graph(200, 0.125)
+# test_data = nx.random_geometric_graph(200, 0.125)
 
 
 def main():
     # G = GramGraph(test_data, prune=True)
     # G.show_graph()
 
-    GG = GramGraph(test_data)
+    GG = GramGraph(test_data, prune=True)
     GG.show_graph()
 
 
 class GramGraph(nx.DiGraph):
-    def __init__(self, data: Dict[str, List[str]], prune: bool = False):
+    def __init__(
+        self,
+        data: Dict[str, List[str]],
+        center: Optional[str] = None,
+        prune: bool = False,
+    ):
         super().__init__(data)
+        print("preparing graph", self)
+        self.node_size = 10
+        # to use for labels
+        self.adjacency_dict = {node: len(edges) for node, edges in self.adjacency()}
+        if center:
+            self.center = center
         if prune:
             self._prune_graph()
-        self.node_size = 10
 
     def _position_graph(self):
         """Adds 'pos' attribute to each node, used to draw graph later"""
-        position = nx.spring_layout(self)
+        position = nx.spring_layout(
+            self,
+            iterations=1,
+        )
         for node in self.nodes():
             self.nodes[node]["pos"] = list(position[node])
 
@@ -102,8 +115,12 @@ class GramGraph(nx.DiGraph):
 
         node_adjacencies = []
         node_text = []
-        for node, adjacencies in self.adjacency():
-            n_adjacencies = len(adjacencies)
+
+        # using copy of adjacency list from before pruning
+        for node, n_adjacencies in self.adjacency_dict.items():
+            if node not in self:
+                # don't consider pruned nodes
+                continue
             node_adjacencies.append(n_adjacencies)
             node_text.append(f"{node}: {n_adjacencies} connections")
 
@@ -149,14 +166,15 @@ class GramGraph(nx.DiGraph):
         self.remove_edges_from(edges_to_remove)
 
 
-def get_figures_JSON() -> Tuple[str, str]:
+def get_figures_JSON(user: str) -> Tuple[str, str]:
     """Preloads JSON for both pruned and unpruned graphs"""
-    with open(PICKLE_FILENAME, "rb") as f:
-        followers = pickle.load(f)
+    # with open(PICKLE_FILENAME, "rb") as f:
+    #     followers = pickle.load(f)
     with database_connection(DATABASE_FILENAME) as db:
         followers = {user: followers for user, followers, _ in db.get_all_users()}
-    G = GramGraph(followers, prune=False)
-    GP = GramGraph(followers, prune=True)
+        # followers = {"happyhoundsza": db.get_user("happyhoundsza").followers}
+    G = GramGraph(followers, user, prune=False)
+    GP = GramGraph(followers, user, prune=True)
     unpruned_fig = G.plot_graph()
     pruned_fig = GP.plot_graph()
     return (
@@ -165,9 +183,9 @@ def get_figures_JSON() -> Tuple[str, str]:
     )
 
 
-def save_figures_JSON():
+def save_figures_JSON(user: str) -> None:
     """converts followers data into pruned and unpruned data"""
-    pruned_json, unpruned_json = get_figures_JSON()
+    pruned_json, unpruned_json = get_figures_JSON(user)
 
     if not os.path.exists(DATA_DIRECTORY):
         os.makedirs(DATA_DIRECTORY)
@@ -178,8 +196,6 @@ def save_figures_JSON():
     ]:
         with open(filename, "w") as f:
             f.write(json_file)
-
-    print("graph json prepared (pruned and unpruned)")
 
 
 if __name__ == "__main__":
