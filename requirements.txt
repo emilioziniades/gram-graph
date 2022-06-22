@@ -22,7 +22,6 @@ executing==0.8.3
 Flask==2.1.2
 future==0.18.2
 googleapis-common-protos==1.56.0
--e git+ssh://git@github.com/emilioziniades/gram-graph.git@7123b4dd7668d7972c90344578ed32d40cf4e34b#egg=gramgraph&subdirectory=gramgraph
 grpcio==1.46.0
 gunicorn==20.1.0
 h11==0.13.0
