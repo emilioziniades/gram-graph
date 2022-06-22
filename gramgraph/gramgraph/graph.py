@@ -1,7 +1,8 @@
 import os
 import pickle
 import json
-from typing import Dict, List, Tuple, Optional
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import plotly.graph_objects as go
 import plotly
@@ -14,6 +15,7 @@ from .config import (
     PRUNED_FIGURE_FILENAME,
     UNPRUNED_FIGURE_FILENAME,
     PICKLE_FILENAME,
+    SUMMARY_DATA_FILENAME,
 )
 
 test_data = {
@@ -42,7 +44,6 @@ class GramGraph(nx.DiGraph):
         prune: bool = False,
     ):
         super().__init__(data)
-        print("preparing graph", self)
         self.node_size = 10
         # to use for labels
         self.adjacency_dict = {node: len(edges) for node, edges in self.adjacency()}
@@ -50,6 +51,7 @@ class GramGraph(nx.DiGraph):
             self.center = center
         if prune:
             self._prune_graph()
+        print("preparing graph", self)
 
     def _position_graph(self):
         """Adds 'pos' attribute to each node, used to draw graph later"""
@@ -166,36 +168,35 @@ class GramGraph(nx.DiGraph):
         self.remove_edges_from(edges_to_remove)
 
 
-def get_figures_JSON(user: str) -> Tuple[str, str]:
-    """Preloads JSON for both pruned and unpruned graphs"""
+def save_figures_JSON(user: str, prune: bool = True) -> None:
+    """Preloads JSON for both pruned and unpruned graphs and saves it"""
+
     # with open(PICKLE_FILENAME, "rb") as f:
     #     followers = pickle.load(f)
     with database_connection(DATABASE_FILENAME) as db:
-        followers = {user: followers for user, followers, _ in db.get_all_users()}
-        # followers = {"happyhoundsza": db.get_user("happyhoundsza").followers}
-    G = GramGraph(followers, user, prune=False)
-    GP = GramGraph(followers, user, prune=True)
-    unpruned_fig = G.plot_graph()
-    pruned_fig = GP.plot_graph()
-    return (
-        json.dumps(pruned_fig, cls=plotly.utils.PlotlyJSONEncoder),
-        json.dumps(unpruned_fig, cls=plotly.utils.PlotlyJSONEncoder),
-    )
-
-
-def save_figures_JSON(user: str) -> None:
-    """converts followers data into pruned and unpruned data"""
-    pruned_json, unpruned_json = get_figures_JSON(user)
+        # followers = {user: followers for user, followers, _ in db.get_all_users()}
+        followers = {"happyhoundsza": db.get_user("happyhoundsza").followers}
 
     if not os.path.exists(DATA_DIRECTORY):
         os.makedirs(DATA_DIRECTORY)
 
-    for json_file, filename in [
-        (pruned_json, PRUNED_FIGURE_FILENAME),
-        (unpruned_json, UNPRUNED_FIGURE_FILENAME),
+    for filename, prune in [
+        (UNPRUNED_FIGURE_FILENAME, False),
+        (PRUNED_FIGURE_FILENAME, True),
     ]:
+        graph = GramGraph(followers, user, prune=prune)
+        figure = graph.plot_graph()
+        figure_json = json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
         with open(filename, "w") as f:
-            f.write(json_file)
+            f.write(figure_json)
+
+        if not prune:
+            # also save most followed accounts in unpruned graph
+            most_followed = sorted(
+                graph.adjacency_dict.items(), key=lambda x: x[1], reverse=True
+            )
+            with open(SUMMARY_DATA_FILENAME, "w") as f:
+                f.write(json.dumps(most_followed[:10]))
 
 
 if __name__ == "__main__":
