@@ -1,8 +1,6 @@
 import os
-import pickle
 import json
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import plotly.graph_objects as go
 import plotly
@@ -14,41 +12,33 @@ from .config import (
     DATABASE_FILENAME,
     PRUNED_FIGURE_FILENAME,
     UNPRUNED_FIGURE_FILENAME,
-    PICKLE_FILENAME,
     SUMMARY_DATA_FILENAME,
 )
 
-test_data = {
-    "a": ["b", "c"],
-    "b": ["c"],
-    "c": [],
-    "d": ["a", "b", "c"],
-    "e": ["a"],
-}
-# test_data = nx.random_geometric_graph(200, 0.125)
-
 
 def main():
-    # G = GramGraph(test_data, prune=True)
-    # G.show_graph()
+    test_data = nx.random_geometric_graph(200, 0.125)
+    G = GramGraph(test_data, prune=True)
+    G.show_graph()
 
     GG = GramGraph(test_data, prune=True)
     GG.show_graph()
 
 
 class GramGraph(nx.DiGraph):
+    """
+    Handles creation, pruning, positioning of graph and representing it as a plotly chart
+    """
+
     def __init__(
         self,
         data: Dict[str, List[str]],
-        center: Optional[str] = None,
         prune: bool = False,
     ):
         super().__init__(data)
         self.node_size = 10
         # to use for labels
         self.adjacency_dict = {node: len(edges) for node, edges in self.adjacency()}
-        if center:
-            self.center = center
         if prune:
             self._prune_graph()
         print("preparing graph", self)
@@ -168,22 +158,22 @@ class GramGraph(nx.DiGraph):
         self.remove_edges_from(edges_to_remove)
 
 
-def save_figures_JSON(user: str, prune: bool = True) -> None:
+def save_figures_JSON() -> None:
     """Preloads JSON for both pruned and unpruned graphs and saves it"""
-
-    # with open(PICKLE_FILENAME, "rb") as f:
-    #     followers = pickle.load(f)
-    with database_connection(DATABASE_FILENAME) as db:
-        followers = {user: followers for user, followers, _ in db.get_all_users()}
 
     if not os.path.exists(DATA_DIRECTORY):
         os.makedirs(DATA_DIRECTORY)
 
-    for filename, prune in [
+    with database_connection(DATABASE_FILENAME) as db:
+        followers = {user: followers for user, followers, _ in db.get_all_users()}
+
+    figures_info = [
         (UNPRUNED_FIGURE_FILENAME, False),
         (PRUNED_FIGURE_FILENAME, True),
-    ]:
-        graph = GramGraph(followers, user, prune=prune)
+    ]
+
+    for filename, prune in figures_info:
+        graph = GramGraph(followers, prune)
         figure = graph.plot_graph()
         figure_json = json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
         with open(filename, "w") as f:
