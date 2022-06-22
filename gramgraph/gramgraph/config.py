@@ -6,6 +6,9 @@ def in_data_dir(filename):
     return os.path.join(DATA_DIRECTORY, filename)
 
 
+# hard coded for now
+ACCOUNT = "happhoundsza"
+
 PROJECT_DIRECTORY = Path(__file__).parents[1]
 DATA_DIRECTORY = os.path.join(Path(__file__).parents[2], "data")
 PRUNED_FIGURE_FILENAME = in_data_dir("pruned_figure.json")
