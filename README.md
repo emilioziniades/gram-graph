@@ -65,7 +65,7 @@ $ flask run
 Initially, the application will show the existing database for Happy Hounds. If you want to collect fresh data for a different account, do the following.
 
 1. Delete the `data` folder.
-2. Go to `/gramgraph/gramgraph/config.py` and change the value of the `ACCOUNT` variable.
+2. Go to `/app/config.py` and change the value of the `ACCOUNT` variable.
 3. Run `flask collect` in a terminal. This will collect all the data from instagram and store it in a local db. Be prepared to wait.
 4. Next, run `flask prepare` in a terminal. It will process all the data, extract the summary and save all the information in JSON.
 5. Run `flask run` again, and you should be able to see the new graph in a browser. Enjoy!
