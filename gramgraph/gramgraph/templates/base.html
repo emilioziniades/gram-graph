@@ -1,26 +1,31 @@
-<!doctype html>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+<!DOCTYPE html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}" />
 <html>
- <body>
-   <div class="flex-center">
-    <h1 class="header">GramGraph</h1>
-    <h2>Showing followers graph of: {{ main_account }}</h2>
-    <button>
-    {% if prune %}
-      <a href="{{ url_for('index')}}">Unprune graph</a>
-    {% else %}
-      <a href="{{ url_for('index', prune=True)}}">Prune graph</a>
-    {% endif %}
-    </button>
-    <em>Pruned graphs omit any nodes with only one connection</em>
-   </div>
-  <div id='chart' class='chart'”></div>
-</body>
+  <body>
+    <div class="flex-center">
+      <h1 class="header">GramGraph</h1>
+      <h2>Showing followers graph of: {{ main_account }}</h2>
+      <em class="note">
+        Graph is pruned. Only accounts with more than one follower are shown.
+      </em>
+    </div>
+    <div id="chart" class="chart" ”></div>
+    <div class="flex-center">
+      <h2>Most followed accounts in {{ main_account }}'s neighbourhood</h2>
+      <ul class="follower-list">
+        {% for (username, count) in most_followed %}
+        <li>
+          <a href="https://instagram.com/{{username}}">{{ username }}</a> -
+          <b>{{count}}</b>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </body>
 
-<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
-<script type='text/javascript'>
-  var graphs = {{ figure_JSON | safe}};
-  Plotly.plot('chart',graphs,{});
-</script>
-
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script type="text/javascript">
+    var graphs = {{ figure_JSON | safe}};
+    Plotly.plot('chart',graphs,{});
+  </script>
 </html>

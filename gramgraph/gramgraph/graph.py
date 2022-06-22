@@ -174,8 +174,7 @@ def save_figures_JSON(user: str, prune: bool = True) -> None:
     # with open(PICKLE_FILENAME, "rb") as f:
     #     followers = pickle.load(f)
     with database_connection(DATABASE_FILENAME) as db:
-        # followers = {user: followers for user, followers, _ in db.get_all_users()}
-        followers = {"happyhoundsza": db.get_user("happyhoundsza").followers}
+        followers = {user: followers for user, followers, _ in db.get_all_users()}
 
     if not os.path.exists(DATA_DIRECTORY):
         os.makedirs(DATA_DIRECTORY)

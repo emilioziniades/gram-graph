@@ -1,35 +1,47 @@
+import json
 from pathlib import Path
 
 from flask import Flask, render_template, request
 
 # from .data import collect_data
 from .graph import save_figures_JSON
-from .config import DATA_DIRECTORY
+from .config import (
+    DATA_DIRECTORY,
+    PRUNED_FIGURE_FILENAME,
+    UNPRUNED_FIGURE_FILENAME,
+    SUMMARY_DATA_FILENAME,
+)
 
 
 app = Flask(__name__)
 
 # hard coded for now
 USER = "happyhoundsza"
+PRUNE = True
 
 
 @app.route("/")
 def index() -> str:
-    pruned_JSON = Path(f"{DATA_DIRECTORY}/pruned_figure.json").read_text()
-    unpruned_JSON = Path(f"{DATA_DIRECTORY}/unpruned_figure.json").read_text()
-    prune = bool(request.args.get("prune", False))
+    if PRUNE:
+        figure_JSON = Path(DATA_DIRECTORY, PRUNED_FIGURE_FILENAME).read_text()
+    else:
+        figure_JSON = Path(DATA_DIRECTORY, UNPRUNED_FIGURE_FILENAME).read_text()
+
+    most_followed_JSON = Path(DATA_DIRECTORY, SUMMARY_DATA_FILENAME).read_text()
+    most_followed = json.loads(most_followed_JSON)
+
     return render_template(
         "base.html",
-        figure_JSON=pruned_JSON if prune else unpruned_JSON,
+        figure_JSON=figure_JSON,
+        most_followed=most_followed,
         main_account=USER,
-        prune=prune,
     )
 
 
 @app.cli.command("prepare")
-def prepare_graphs(user: str = USER) -> None:
+def prepare_graph(user: str = USER, prune: bool = PRUNE) -> None:
     print("preparing graphs")
-    save_figures_JSON(user)
+    save_figures_JSON(user, prune)
 
 
 # @app.cli.command("collect")
